@@ -232,3 +232,19 @@ function mdpreview() {
     glow "$1"
 }
 
+# Custom Greeting Message
+print_greeting() {
+    local current_date
+    local username=$(whoami)
+    
+    # Colors
+
+    current_date=$(command date +"%A, %B %d, %Y")  
+    echo "Welcome! $username"
+    echo "Today is $current_date"
+    echo ""
+}
+
+# Call the greeting function
+print_greeting
+
