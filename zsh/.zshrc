@@ -9,6 +9,10 @@ export VISUAL=nvim
 # To make it easy to run your scripts from anywhere
 export PATH="$HOME/scripts:$PATH"
 
+ # Start SSH agent and add SSH key
+eval "$(ssh-agent -s)"  &>/dev/null
+ssh-add ~/.ssh/id_ed25519 &>/dev/null
+
 
 #source zinit to initialize Plugins
 source /usr/share/zinit/zinit.zsh
