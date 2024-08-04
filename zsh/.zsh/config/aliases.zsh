@@ -1,4 +1,4 @@
-# General Aliases
+#Aliases
 alias zr='source ~/.zshrc'
 alias editz='nvim ~/.zshrc'
 alias ..='cd ..'
@@ -177,8 +177,12 @@ alias awscli='aws configure'
 alias s3list='aws s3 ls'
 alias s3sync='aws s3 sync'
 alias venv='python3 -m venv'
-alias activate='source venv/bin/activate'
-alias deactivate='deactivate'
+# Ensure deactivate alias is removed to avoid conflicts
+unalias deactivate 2>/dev/null
+
+# Define the alias to activate the virtual environment
+alias activate='source ~/venv/bin/activate'
+
 alias dockerbuild='docker build -t'
 alias dockerimages='docker images'
 alias dockerrun='docker run -it'
@@ -195,4 +199,6 @@ alias amkr='add_alias'
 alias cdp='cd ~/Projects'
 alias cdd='cd ~/Downloads'
 alias archsearch='~/scripts/system/arch_wiki_search.sh'
+alias deauth='sudo python3 ~/scripts/Hacking/deauth.py --deauth'
+alias scan='sudo python3 ~/scripts/Hacking/deauth.py --scan'
 
