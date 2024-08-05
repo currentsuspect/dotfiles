@@ -64,7 +64,7 @@
     progress_bar_corner_radius = 4
 
     # Corner radius for the icon image.
-    icon_corner_radius = 7
+    icon_corner_radius = 0
 
     # Show how many messages are currently hidden (because of
     # notification_limit).
@@ -250,7 +250,7 @@
     # corners.
     # The radius will be automatically lowered if it exceeds half of the
     # notification height to avoid clipping text and/or icons.
-    corner_radius = 7
+    corner_radius = 0
 
     # Ignore the dbus closeNotification message.
     # Useful to enforce the timeout set by dunst configuration. Without this
@@ -449,15 +449,15 @@
     timeout = 0
 
 [urgency_low]
-    background = "#657BA380"
-    foreground = "#CCDEFFE6"
-    frame_color = "#657BA303"
+    background = "#A3658180"
+    foreground = "#FFCCE3E6"
+    frame_color = "#A3658103"
     icon = "/home/zerotrace/.config/dunst/icons/hyprdots.svg"
     timeout = 5
 
 [urgency_normal]
-    background = "#3A496B80"
-    foreground = "#CCDCFFE6"
-    frame_color = "#3A496B03"
+    background = "#6B3A5C80"
+    foreground = "#FFCCEFE6"
+    frame_color = "#6B3A5C03"
     icon = "/home/zerotrace/.config/dunst/icons/hyprdots.svg"
     timeout = 5
