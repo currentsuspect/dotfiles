@@ -240,7 +240,7 @@ print_greeting() {
     # Colors
 
     current_date=$(command date +"%A, %B %d, %Y")  
-    echo "Welcome! $username"
+    echo "Hello! $username"
     echo "Today is $current_date"
     echo ""
 }

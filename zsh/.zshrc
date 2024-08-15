@@ -40,7 +40,7 @@ source $HOME/.zsh/config/completions.zsh
 
 # Initialize zoxide
 eval "$(zoxide init --cmd fcd zsh)"
-
+eval "$(zoxide init zsh)"
 # Source powerlevel10k configuration if it exists
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
