@@ -22,6 +22,13 @@ require("lazy").setup({
     "hrsh7th/cmp-path",
     "hrsh7th/cmp-nvim-lsp",
     "saadparwaiz1/cmp_luasnip",
+    "wbthomason/packer.nvim",          -- Packer itself
+    "neovim/nvim-lspconfig",           -- LSP configurations
+    "hrsh7th/nvim-cmp",                -- Main completion plugin
+    "hrsh7th/cmp-nvim-lsp",            -- LSP source for nvim-cmp
+    "saadparwaiz1/cmp_luasnip",        -- Snippet source for nvim-cmp
+    "L3MON4D3/LuaSnip",                -- Snippet engine
+    "onsails/lspkind-nvim",            -- Icons for nvim-cmp
 
     -- Additional plugins
     "kyazdani42/nvim-web-devicons",   -- File icons
