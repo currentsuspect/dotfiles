@@ -20,7 +20,7 @@
   "neogit": { "branch": "master", "commit": "16ee9ae957db2142fb189f5f2556123e24c5b7fb" },
   "neotest": { "branch": "master", "commit": "6d6ad113f56edc7c3f2a77a0836ea8c1b955ebea" },
   "neotest-python": { "branch": "master", "commit": "72603dfdbaad5695160268cb10531a14cc37236e" },
-  "nvim-autopairs": { "branch": "master", "commit": "fd2badc24e675f947162a16c124d395bde80dbd6" },
+  "nvim-autopairs": { "branch": "master", "commit": "f158dcb865c36f72c92358f87787dab2c272eaf3" },
   "nvim-cmp": { "branch": "main", "commit": "983453e32cb35533a119725883c04436d16c0120" },
   "nvim-lspconfig": { "branch": "master", "commit": "056f569f71e4b726323b799b9cfacc53653bceb3" },
   "nvim-nio": { "branch": "master", "commit": "a428f309119086dc78dd4b19306d2d67be884eee" },
