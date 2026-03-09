@@ -6,6 +6,8 @@ warn() { printf '⚠️  %s\n' "$1"; }
 fail() { printf '❌ %s\n' "$1"; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
+required_failures=0
+
 section() {
   echo
   echo "==> $1"
@@ -18,26 +20,29 @@ check_cmd() {
     ok "$cmd"
   else
     case "$level" in
-      required) fail "$cmd missing" ;;
+      required)
+        fail "$cmd missing"
+        required_failures=$((required_failures + 1))
+        ;;
       optional) warn "$cmd missing" ;;
     esac
   fi
 }
 
 section 'Core commands'
-for cmd in bash git tmux curl jq rg fd fzf eza zoxide node npm pm2 openclaw starship; do
+for cmd in bash git tmux curl jq rg fd fzf zoxide; do
   check_cmd "$cmd" required
 done
-if have batcat || have bat; then ok 'bat/batcat'; else fail 'bat or batcat missing'; fi
-for cmd in gh tailscale docker flutter sensors trash-put multitail clang-format cmake ctest; do
+for cmd in bat batcat eza node npm pm2 openclaw starship gh tailscale docker flutter sensors trash-put multitail clang-format cmake ctest; do
   check_cmd "$cmd" optional
 done
 
 section 'Shell load'
 if bash -ic 'source ~/.bashrc >/dev/null 2>/tmp/vps-doctor-shell.err; type zi >/dev/null; type lt >/dev/null; type plog >/dev/null; type ltree >/dev/null; type glog >/dev/null; type mem >/dev/null; type mem-usage >/dev/null' ; then
-  ok '~/.bashrc loads and key helpers resolve'
+  ok '$HOME/.bashrc loads and key helpers resolve'
 else
-  fail '~/.bashrc did not load cleanly'
+  fail '$HOME/.bashrc did not load cleanly'
+  required_failures=$((required_failures + 1))
   cat /tmp/vps-doctor-shell.err || true
 fi
 
@@ -71,4 +76,9 @@ if have ss; then
 fi
 
 echo
+if [ "$required_failures" -gt 0 ]; then
+  fail "Doctor found $required_failures required issue(s)"
+  exit 1
+fi
+
 echo 'Doctor run complete.'

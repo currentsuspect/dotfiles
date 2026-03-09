@@ -86,13 +86,13 @@ storage-audit() {
     echo "  npm:    $(du -sh ~/.npm 2>/dev/null | cut -f1)"
     echo "  pip:    $(du -sh ~/.cache/pip 2>/dev/null | cut -f1)"
     echo "  cargo:  $(du -sh ~/.cargo/registry 2>/dev/null | cut -f1)"
-    echo "  apt:    $(du -sh /var/cache/apt 2>/dev/null | sudo cut -f1)"
+    echo "  apt:    $(sudo du -sh /var/cache/apt 2>/dev/null | cut -f1)"
     echo ""
     
     # Logs
     echo "📝 Logs:"
     echo "  ~/.openclaw/logs:  $(du -sh ~/.openclaw/logs 2>/dev/null | cut -f1)"
-    echo "  /var/log:          $(du -sh /var/log 2>/dev/null | sudo cut -f1)"
+    echo "  /var/log:          $(sudo du -sh /var/log 2>/dev/null | cut -f1)"
     echo ""
     
     # PM2
@@ -227,19 +227,38 @@ config-restore() {
 
 # Check before dangerous operations
 safe-rm() {
-    for f in "$@"; do
+    local opts=()
+    local paths=()
+    local arg
+
+    for arg in "$@"; do
+        case "$arg" in
+            --) opts+=("$arg") ;;
+            -*) opts+=("$arg") ;;
+            *)  paths+=("$arg") ;;
+        esac
+    done
+
+    if [ ${#paths[@]} -eq 0 ]; then
+        echo "Usage: safe-rm [-r|-f|-rf] <path...>"
+        return 1
+    fi
+
+    for f in "${paths[@]}"; do
         if [ -d "$f" ]; then
-            read -p "⚠️  Delete directory '$f'? [y/N] " confirm
-            [[ $confirm == [yY]* ]] && rm -rf "$f"
-        elif [ -f "$f" ]; then
-            read -p "⚠️  Delete file '$f'? [y/N] " confirm
-            [[ $confirm == [yY]* ]] && rm "$f"
+            read -r -p "⚠️  Delete directory '$f'? [y/N] " confirm
+            [[ $confirm == [yY]* ]] && /bin/rm "${opts[@]}" "$f"
+        elif [ -e "$f" ]; then
+            read -r -p "⚠️  Delete file '$f'? [y/N] " confirm
+            [[ $confirm == [yY]* ]] && /bin/rm "${opts[@]}" "$f"
+        else
+            echo "Not found: $f"
         fi
     done
 }
 
-# Prevent accidental rm -rf /
-alias rm='safe-rm'
+# Safer explicit deletion helpers
+alias rm-safe='safe-rm'
 alias rm-force='/bin/rm'
 
 # Check disk space before big operations

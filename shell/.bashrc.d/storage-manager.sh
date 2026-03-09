@@ -5,7 +5,9 @@
 # STORAGE COMMANDS
 # ============================================================
 
-alias storage='df -h / | tail -1 | awk "{printf \"💾 Used: %s / %s (%s)\n\", \$3, \$2, \$5}"'
+storage() {
+    df -h / | tail -1 | awk '{printf "💾 Used: %s / %s (%s)\n", $3, $2, $5}'
+}
 alias big='du -h --max-depth=1 2>/dev/null | sort -hr | head -15'
 alias big-files='find . -type f -size +100M 2>/dev/null | xargs ls -lh 2>/dev/null | sort -k5 -hr'
 
@@ -29,7 +31,7 @@ storage-report() {
     echo "📝 Logs:"
     du -sh ~/.openclaw/logs 2>/dev/null | awk '{print "  OpenClaw: " $1}'
     du -sh ~/.pm2 2>/dev/null | awk '{print "  PM2:      " $1}'
-    du -sh /var/log 2>/dev/null | sudo awk '{print "  System:   " $1}'
+    sudo du -sh /var/log 2>/dev/null | awk '{print "  System:   " $1}'
 }
 
 # Quick clean

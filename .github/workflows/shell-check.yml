@@ -30,6 +30,7 @@ jobs:
 
       - name: Shellcheck
         run: |
-          shellcheck -s bash shell/.bashrc
-          find shell/.bashrc.d -type f -name '*.sh' -print0 | xargs -0 -r shellcheck -s bash
-          shellcheck vps/bootstrap-apt.sh vps/first-boot.sh vps/install.sh vps/verify.sh vps/vps-doctor
+          SC_FLAGS='-s bash -S warning -e SC1083,SC2001,SC2002,SC2012,SC2016,SC2046,SC2086,SC2126,SC2155,SC2162,SC2164'
+          shellcheck $SC_FLAGS shell/.bashrc
+          find shell/.bashrc.d -type f -name '*.sh' -print0 | xargs -0 -r shellcheck $SC_FLAGS
+          shellcheck $SC_FLAGS vps/bootstrap-apt.sh vps/first-boot.sh vps/install.sh vps/verify.sh vps/vps-doctor

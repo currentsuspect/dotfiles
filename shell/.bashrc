@@ -7,11 +7,17 @@
 # Helpers
 # ------------------------------------------------------------
 has() { command -v "$1" >/dev/null 2>&1; }
-source_if() { [ -f "$1" ] && . "$1"; }
+# shellcheck disable=SC1090
+source_if() {
+  [ -f "$1" ] || return 0
+  . "$1"
+}
 alias_if() {
   local cmd="$1"
   shift
-  has "$cmd" && alias "$@"
+  if has "$cmd"; then
+    alias "$@"
+  fi
 }
 
 # ------------------------------------------------------------
@@ -33,7 +39,11 @@ PROMPT_COMMAND='history -a'
 # ------------------------------------------------------------
 export LS_COLORS='di=1;34:ln=1;36:so=1;35:pi=1;33:ex=1;32:bd=1;33:cd=1;33:su=1;31:sg=1;31:tw=1;34:ow=1;34'
 if [ -x /usr/bin/dircolors ]; then
-  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+  if [ -r ~/.dircolors ]; then
+    eval "$(dircolors -b ~/.dircolors)"
+  else
+    eval "$(dircolors -b)"
+  fi
 fi
 
 # ------------------------------------------------------------
@@ -106,11 +116,23 @@ has jq && alias jq='jq -C'
 alias du='du -h'
 alias df='df -h'
 alias ps='ps auxf'
-has htop && alias top='htop' || alias top='top'
+if has htop; then
+  alias top='htop'
+else
+  alias top='top'
+fi
 alias mkdir='mkdir -p'
 alias cp='cp -r'
-if has trash-put; then alias rm='trash-put'; else alias rm='rm -i'; fi
-has tmux && { alias t='tmux'; alias ta='tmux attach'; alias tls='tmux ls'; }
+if has trash-put; then
+  alias rm='trash-put'
+else
+  alias rm='rm -i'
+fi
+if has tmux; then
+  alias t='tmux'
+  alias ta='tmux attach'
+  alias tls='tmux ls'
+fi
 
 # ------------------------------------------------------------
 # VPS / OpenClaw
@@ -135,7 +157,10 @@ has openclaw && {
 # ------------------------------------------------------------
 # Utility functions
 # ------------------------------------------------------------
-mkcd() { mkdir -p "$1" && cd "$1"; }
+mkcd() {
+  mkdir -p "$1" || return 1
+  cd "$1" || return 1
+}
 
 extract() {
   if [ ! -f "${1:-}" ]; then echo "'$1' is not a valid file"; return 1; fi
@@ -154,18 +179,63 @@ extract() {
   esac
 }
 
-fdcd() { has fd && has fzf || { echo 'fdcd needs fd + fzf'; return 1; }; local dir; dir=$(fd --type d | fzf) && cd "$dir"; }
-fve() {
-  has fd && has fzf || { echo 'fve needs fd + fzf'; return 1; }
-  local preview='cat {}'
-  has batcat && preview='batcat --color=always {}'
-  has bat && preview='bat --color=always {}'
-  local file; file=$(fd --type f | fzf --preview "$preview") && ${EDITOR:-vim} "$file"
+fdcd() {
+  if ! has fd || ! has fzf; then
+    echo 'fdcd needs fd + fzf'
+    return 1
+  fi
+  local dir
+  dir=$(fd --type d | fzf) || return 1
+  cd "$dir" || return 1
 }
-fgco() { has git && has fzf || { echo 'fgco needs git + fzf'; return 1; }; local branch; branch=$(git branch --all | grep -v HEAD | sed 's/^[* ]*//' | fzf) && git checkout "$branch"; }
-fgc() { has git && has fzf || { echo 'fgc needs git + fzf'; return 1; }; git status --short | fzf --multi --preview 'git diff --color=always {2}' | awk '{print $2}' | xargs git add; git status; }
-fh() { has fzf || { echo 'fh needs fzf'; return 1; }; eval "$(history | fzf +s --tac | sed 's/^[ 0-9]*//')"; }
-fkill() { has fzf || { echo 'fkill needs fzf'; return 1; }; local pid; pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}'); [ -n "$pid" ] && echo "$pid" | xargs kill -9; }
+fve() {
+  if ! has fd || ! has fzf; then
+    echo 'fve needs fd + fzf'
+    return 1
+  fi
+  local preview='cat {}'
+  if has batcat; then
+    preview='batcat --color=always {}'
+  elif has bat; then
+    preview='bat --color=always {}'
+  fi
+  local file
+  file=$(fd --type f | fzf --preview "$preview") || return 1
+  ${EDITOR:-vim} "$file"
+}
+fgco() {
+  if ! has git || ! has fzf; then
+    echo 'fgco needs git + fzf'
+    return 1
+  fi
+  local branch
+  branch=$(git branch --all | grep -v HEAD | sed 's/^[* ]*//' | fzf) || return 1
+  git checkout "$branch"
+}
+fgc() {
+  if ! has git || ! has fzf; then
+    echo 'fgc needs git + fzf'
+    return 1
+  fi
+  git status --short | fzf --multi --preview 'git diff --color=always {2}' | awk '{print $2}' | xargs git add
+  git status
+}
+fh() {
+  if ! has fzf; then
+    echo 'fh needs fzf'
+    return 1
+  fi
+  eval "$(history | fzf +s --tac | sed 's/^[ 0-9]*//')"
+}
+fkill() {
+  if ! has fzf; then
+    echo 'fkill needs fzf'
+    return 1
+  fi
+  local pid
+  pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+  [ -n "$pid" ] && echo "$pid" | xargs kill -9
+}
 genpass() { local length="${1:-20}"; openssl rand -base64 48 | cut -c1-"$length"; }
 
 # ------------------------------------------------------------
@@ -183,7 +253,9 @@ fi
 has starship && eval "$(starship init bash)"
 if ! shopt -oq posix; then
   source_if /usr/share/bash-completion/bash_completion
-  [ -f /usr/share/bash-completion/bash_completion ] || source_if /etc/bash_completion
+  if [ ! -f /usr/share/bash-completion/bash_completion ]; then
+    source_if /etc/bash_completion
+  fi
 fi
 complete -cf sudo 2>/dev/null || true
 complete -cf man 2>/dev/null || true
@@ -206,7 +278,13 @@ if has auto-deploy; then
   alias ad-kch='auto-deploy ~/.openclaw/workspace/kch-website'
   alias ad-logs='tail -f ~/.openclaw/logs/auto-deploy-*.log'
   alias ad-stop='pkill -f "auto-deploy" 2>/dev/null || echo "No auto-deploy running"'
-  alias ad-status='pgrep -f "auto-deploy" && echo "Auto-deploy running" || echo "Auto-deploy stopped"'
+  ad-status() {
+    if pgrep -f "auto-deploy" >/dev/null 2>&1; then
+      echo "Auto-deploy running"
+    else
+      echo "Auto-deploy stopped"
+    fi
+  }
 fi
 
 # ------------------------------------------------------------

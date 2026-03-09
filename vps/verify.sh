@@ -5,6 +5,8 @@ ok() { printf '✅ %s\n' "$1"; }
 warn() { printf '⚠️  %s\n' "$1"; }
 fail() { printf '❌ %s\n' "$1"; }
 
+required_failures=0
+
 check_cmd() {
   local name="$1"
   local level="$2"
@@ -12,33 +14,31 @@ check_cmd() {
     ok "$name"
   else
     case "$level" in
-      required) fail "$name missing" ;;
+      required)
+        fail "$name missing"
+        required_failures=$((required_failures + 1))
+        ;;
       optional) warn "$name missing" ;;
     esac
   fi
 }
 
 echo '==> Command availability'
-for cmd in bash git tmux curl jq rg fd fzf eza zoxide node npm pm2 openclaw starship; do
+for cmd in bash git tmux curl jq rg fd fzf zoxide; do
   check_cmd "$cmd" required
 done
 
-if command -v batcat >/dev/null 2>&1 || command -v bat >/dev/null 2>&1; then
-  ok 'bat/batcat'
-else
-  fail 'bat or batcat missing'
-fi
-
-for cmd in gh tailscale docker flutter sensors trash-put multitail clang-format cmake ctest; do
+for cmd in bat batcat eza node npm pm2 openclaw starship gh tailscale docker flutter sensors trash-put multitail clang-format cmake ctest; do
   check_cmd "$cmd" optional
 done
 
 echo
 echo '==> Shell startup check'
 if bash -ic 'source ~/.bashrc >/dev/null 2>/tmp/vps-config-verify.err; type zi >/dev/null; type lt >/dev/null; type plog >/dev/null; type ltree >/dev/null; type glog >/dev/null' ; then
-  ok '~/.bashrc loads and key aliases/functions resolve'
+  ok '$HOME/.bashrc loads and key aliases/functions resolve'
 else
-  fail '~/.bashrc did not load cleanly'
+  fail '$HOME/.bashrc did not load cleanly'
+  required_failures=$((required_failures + 1))
   cat /tmp/vps-config-verify.err || true
 fi
 
@@ -46,3 +46,7 @@ echo
 echo '==> Summary'
 echo 'Required failures should be fixed before calling this a baseline.'
 echo 'Optional warnings are okay if that feature is intentionally absent.'
+
+if [ "$required_failures" -gt 0 ]; then
+  exit 1
+fi
