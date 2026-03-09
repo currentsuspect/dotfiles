@@ -1,5 +1,5 @@
 # Path to your Oh My Zsh installation
-export ZSH=$HOME/.oh-my-zsh
+export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load
 export ZSH_THEME="powerlevel10k/powerlevel10k"
@@ -12,8 +12,10 @@ fi
 # Enable plugins
 plugins=(git sudo zsh-syntax-highlighting zsh-autosuggestions)
 
-# Source the Oh My Zsh configuration
-source $ZSH/oh-my-zsh.sh
+# Source the Oh My Zsh configuration only if installed
+if [[ -f "$ZSH/oh-my-zsh.sh" ]]; then
+    source "$ZSH/oh-my-zsh.sh"
+fi
 
 # Function to handle command not found
 command_not_found_handler() {
@@ -42,7 +44,9 @@ elif pacman -Qi paru &>/dev/null ; then
 fi
 
 # Initialize zoxide
-eval "$(zoxide init --cmd fcd zsh)"
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init --cmd fcd zsh)"
+fi
 
 # Source powerlevel10k configuration if it exists
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
@@ -61,11 +65,10 @@ else
     echo "Functions file not found!"
 fi
 
-# Zoxide intergration
-eval "$(zoxide init zsh)"
-
 # The Fuck integration
-eval $(thefuck --alias)
+if command -v thefuck >/dev/null 2>&1; then
+    eval "$(thefuck --alias)"
+fi
 
 # Syntax Highlighting Configuration
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
