@@ -35,8 +35,11 @@ ae-clean() {
 # Full rebuild
 ae-rebuild() {
     echo "🔨 Full Aestra rebuild..."
-    ae-clean
-    ae-config && ae-build
+    (
+        cd ~/.openclaw/workspace/Aestra || exit 1
+        ae-clean
+        ae-config && ae-build
+    )
 }
 
 # ============================================================
@@ -94,7 +97,7 @@ dev-aestra() {
 
 # Quick Aestra status
 ae-status() {
-    cd ~/.openclaw/workspace/Aestra
+    cd ~/.openclaw/workspace/Aestra || return 1
     echo "🎯 AESTRA STATUS"
     echo "================"
     echo ""
@@ -130,12 +133,12 @@ ae-status() {
 # CODE QUALITY
 # ============================================================
 
-alias ae-format='cd ~/.openclaw/workspace/Aestra && find . -name "*.cpp" -o -name "*.h" | xargs clang-format -i'
-alias ae-format-check='cd ~/.openclaw/workspace/Aestra && find . -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror'
+alias ae-format='cd ~/.openclaw/workspace/Aestra && find . \( -name "*.cpp" -o -name "*.h" \) -print0 | xargs -0 clang-format -i'
+alias ae-format-check='cd ~/.openclaw/workspace/Aestra && find . \( -name "*.cpp" -o -name "*.h" \) -print0 | xargs -0 clang-format --dry-run --Werror'
 
 # Check which files need formatting
 ae-format-diff() {
-    cd ~/.openclaw/workspace/Aestra
+    cd ~/.openclaw/workspace/Aestra || return 1
     local files=$(git diff --name-only HEAD | grep -E "\.(cpp|h)$" || git ls-files | grep -E "\.(cpp|h)$")
     for f in $files; do
         if [ -f "$f" ]; then
@@ -155,7 +158,7 @@ alias ae-pr-create='cd ~/.openclaw/workspace/Aestra && gh pr create'
 
 # Check CI status of current branch
 ae-ci-status() {
-    cd ~/.openclaw/workspace/Aestra
+    cd ~/.openclaw/workspace/Aestra || return 1
     local branch=$(git branch --show-current)
     echo "🔍 CI status for $branch:"
     gh run list --branch "$branch" --limit 5 2>/dev/null || echo "  (install gh CLI for CI integration)"
@@ -185,7 +188,16 @@ ae-tasks() {
 # ============================================================
 
 # Run Aestra (if built)
-alias ae-run='cd ~/.openclaw/workspace/Aestra && ./build/aestra 2>/dev/null || ./build/aestra.exe 2>/dev/null || echo "Not built yet — run ae-build"'
+ae-run() {
+    cd ~/.openclaw/workspace/Aestra || return 1
+    if [ -x ./build/aestra ]; then
+        ./build/aestra 2>/dev/null
+    elif [ -x ./build/aestra.exe ]; then
+        ./build/aestra.exe 2>/dev/null
+    else
+        echo "Not built yet — run ae-build"
+    fi
+}
 
 # Open Aestra in file explorer (or list)
 alias ae-files='cd ~/.openclaw/workspace/Aestra && ls -la'
@@ -194,7 +206,7 @@ alias ae-files='cd ~/.openclaw/workspace/Aestra && ls -la'
 ae-search() {
     local pattern="$1"
     [ -z "$pattern" ] && { echo "Usage: ae-search <pattern>"; return 1; }
-    cd ~/.openclaw/workspace/Aestra
+    cd ~/.openclaw/workspace/Aestra || return 1
     rg "$pattern" --type cpp --type h 2>/dev/null || grep -r "$pattern" --include="*.cpp" --include="*.h" .
 }
 
@@ -202,6 +214,6 @@ ae-search() {
 ae-find() {
     local pattern="$1"
     [ -z "$pattern" ] && { echo "Usage: ae-find <filename-pattern>"; return 1; }
-    cd ~/.openclaw/workspace/Aestra
+    cd ~/.openclaw/workspace/Aestra || return 1
     fd "$pattern" --type f 2>/dev/null || find . -name "*$pattern*" -type f
 }

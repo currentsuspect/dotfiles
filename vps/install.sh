@@ -32,6 +32,7 @@ fi
 echo "==> Installing VPS config bundle"
 install_file "$BUNDLE_ROOT/shell/.bashrc" "$HOME/.bashrc"
 mkdir -p "$HOME/.bashrc.d"
+find "$HOME/.bashrc.d" -maxdepth 1 -type f \( -name '*.sh' -o -name '*.sh.example' \) ! -name 'local.sh' -delete
 cp -a "$BUNDLE_ROOT/shell/.bashrc.d/." "$HOME/.bashrc.d/"
 echo "Installed: $HOME/.bashrc.d/*"
 if [ ! -f "$HOME/.bashrc.d/local.sh" ] && [ -f "$BUNDLE_ROOT/shell/.bashrc.d/local.sh.example" ]; then

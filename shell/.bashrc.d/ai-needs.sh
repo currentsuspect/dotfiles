@@ -11,7 +11,7 @@ log-rotate() {
     local days="${2:-7}"
     
     echo "🔄 Rotating logs older than $days days in $log_dir"
-    find "$log_dir" -name "*.log" -mtime +$days -exec gzip {} \; 2>/dev/null
+    find "$log_dir" -name "*.log" -mtime "+$days" -exec gzip {} \; 2>/dev/null
     find "$log_dir" -name "*.gz" -mtime +30 -delete 2>/dev/null
     echo "✅ Log rotation complete"
     du -sh "$log_dir" 2>/dev/null
@@ -119,8 +119,12 @@ cache-clean() {
     
     # cargo
     if [ -d ~/.cargo ]; then
-        cargo cache --autoclean 2>/dev/null
-        echo "  ✅ cargo cache cleaned"
+        if command -v cargo-cache >/dev/null 2>&1; then
+            cargo-cache --autoclean 2>/dev/null
+            echo "  ✅ cargo cache cleaned"
+        else
+            echo "  ℹ️ cargo-cache not installed — skipping cargo cache cleanup"
+        fi
     fi
     
     # apt
@@ -246,10 +250,10 @@ safe-rm() {
 
     for f in "${paths[@]}"; do
         if [ -d "$f" ]; then
-            read -r -p "⚠️  Delete directory '$f'? [y/N] " confirm
+            read -r -p "⚠️  Delete directory '$f'? [y/N] " confirm </dev/tty
             [[ $confirm == [yY]* ]] && /bin/rm "${opts[@]}" "$f"
         elif [ -e "$f" ]; then
-            read -r -p "⚠️  Delete file '$f'? [y/N] " confirm
+            read -r -p "⚠️  Delete file '$f'? [y/N] " confirm </dev/tty
             [[ $confirm == [yY]* ]] && /bin/rm "${opts[@]}" "$f"
         else
             echo "Not found: $f"
@@ -292,10 +296,16 @@ EOF
 # Restore session state
 session-restore() {
     local state_file="$HOME/.openclaw/.session-state"
+    local saved_pwd
     if [ -f "$state_file" ]; then
         echo "📂 Restoring last session:"
         cat "$state_file"
-        cd "$(grep LAST_PWD "$state_file" | cut -d= -f2)" 2>/dev/null
+        saved_pwd="$(grep LAST_PWD "$state_file" | cut -d= -f2)"
+        if [ -n "$saved_pwd" ] && [ -d "$saved_pwd" ]; then
+            cd "$saved_pwd" || return 1
+        else
+            cd "$HOME" || return 1
+        fi
     fi
 }
 

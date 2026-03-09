@@ -6,5 +6,6 @@
 # export PROJECTS_ROOT="$HOME/workspace"
 # alias wr='cd "$PROJECTS_ROOT/resonance"'
 # alias wa='cd "$PROJECTS_ROOT/Aestra"'
-# alias phone='ssh u0_a480@100.89.84.76 -p 8022'
+# Copy this file to ~/.bashrc.d/local.sh and fill in your real values there.
+# alias phone='ssh your-user@your-host -p 2222'
 # export EDITOR='nvim'

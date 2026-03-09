@@ -9,16 +9,18 @@ required_failures=0
 
 check_cmd() {
   local name="$1"
-  local level="$2"
+  local level="${2:-required}"
   if command -v "$name" >/dev/null 2>&1; then
     ok "$name"
   else
     case "$level" in
-      required)
+      optional)
+        warn "$name missing"
+        ;;
+      *)
         fail "$name missing"
         required_failures=$((required_failures + 1))
         ;;
-      optional) warn "$name missing" ;;
     esac
   fi
 }
@@ -34,7 +36,7 @@ done
 
 echo
 echo '==> Shell startup check'
-if bash -ic 'source ~/.bashrc >/dev/null 2>/tmp/vps-config-verify.err; type zi >/dev/null; type lt >/dev/null; type plog >/dev/null; type ltree >/dev/null; type glog >/dev/null' ; then
+if bash -ic 'source ~/.bashrc >/dev/null 2>/tmp/vps-config-verify.err; type zi >/dev/null; type lt >/dev/null; type plog >/dev/null; type ltree >/dev/null; type glog >/dev/null; type mem >/dev/null; type mem-usage >/dev/null' ; then
   ok '$HOME/.bashrc loads and key aliases/functions resolve'
 else
   fail '$HOME/.bashrc did not load cleanly'

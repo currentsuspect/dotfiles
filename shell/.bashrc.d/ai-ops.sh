@@ -184,8 +184,13 @@ alias we='cd ~/Everything'
 # Find in workspace
 fw() {
     local pattern="$1"
+    local workspace="$HOME/.openclaw/workspace"
     [ -z "$pattern" ] && { echo "Usage: fw <pattern>"; return 1; }
-    cd ~/.openclaw/workspace && fd "$pattern" | head -20
+    [ -d "$workspace" ] || { echo "Workspace not found: $workspace"; return 1; }
+    (
+        cd "$workspace" || exit 1
+        fd "$pattern" | head -20
+    )
 }
 
 # Search content in workspace
@@ -336,7 +341,7 @@ port-check() {
 
 # Curl with timing
 curl-time() {
-    curl -w "\n@curl-format.txt" -o /dev/null -s "$1"
+    curl -w '\nlookup: %{time_namelookup}s\nconnect: %{time_connect}s\npretransfer: %{time_pretransfer}s\nstarttransfer: %{time_starttransfer}s\ntotal: %{time_total}s\nhttp_code: %{http_code}\nsize_download: %{size_download}\n' -o /dev/null -s "$1"
 }
 
 # ============================================================
@@ -406,7 +411,7 @@ mx() {
 # Pretty print JSON
 json() {
     if [ -f "$1" ]; then
-        cat "$1" | jq .
+        jq . "$1"
     else
         echo "$1" | jq .
     fi

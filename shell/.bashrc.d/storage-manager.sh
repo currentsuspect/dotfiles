@@ -54,8 +54,8 @@ clean() {
     pm2 flush 2>/dev/null && echo "  PM2 logs flushed"
     find ~/.openclaw/logs -name "*.log" -mtime +7 -delete 2>/dev/null && echo "  old logs cleaned"
     
-    # Temp
-    rm -rf /tmp/tmp* /tmp/npm* 2>/dev/null
+    # Temp (user-scoped only)
+    find /tmp -maxdepth 1 -user "$USER" \( -name 'tmp*' -o -name 'npm*' \) -exec /bin/rm -rf {} +
     
     echo ""
     storage
@@ -88,7 +88,18 @@ clean-deep() {
 
 # Watch disk usage
 disk-watch() {
-    watch -n 5 'df -h / && echo "" && du -sh ~ 2>/dev/null | head -1'
+    if command -v watch >/dev/null 2>&1; then
+        watch -n 5 'df -h / && echo "" && du -sh ~ 2>/dev/null | head -1'
+        return 0
+    fi
+
+    while true; do
+        clear
+        df -h /
+        echo ""
+        du -sh ~ 2>/dev/null | head -1
+        sleep 5
+    done
 }
 
 # Alert on low disk

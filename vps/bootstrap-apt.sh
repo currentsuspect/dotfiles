@@ -25,7 +25,7 @@ INFRA_PKGS=(
 )
 
 CPP_AUDIO_PKGS=(
-  clang-format cmake ctest pkg-config
+  clang-format cmake pkg-config
 )
 
 # Flutter isn't a clean apt package on Ubuntu 22.04; snap is the sane path.
@@ -61,23 +61,33 @@ ensure_fd_bat_symlinks() {
   fi
 }
 
-log 'Updating apt package lists'
-need_sudo apt-get update
+apt_updated=0
+ensure_apt_updated() {
+  if [ "$apt_updated" -eq 0 ]; then
+    log 'Updating apt package lists'
+    need_sudo apt-get update
+    apt_updated=1
+  fi
+}
 
 case "$PROFILE" in
   base)
+    ensure_apt_updated
     apt_install "${BASE_PKGS[@]}"
     ;;
   infra)
+    ensure_apt_updated
     apt_install "${INFRA_PKGS[@]}"
     ;;
   flutter)
     install_flutter
     ;;
   cpp-audio)
+    ensure_apt_updated
     apt_install "${CPP_AUDIO_PKGS[@]}"
     ;;
   all)
+    ensure_apt_updated
     apt_install "${BASE_PKGS[@]}"
     apt_install "${INFRA_PKGS[@]}"
     apt_install "${CPP_AUDIO_PKGS[@]}"

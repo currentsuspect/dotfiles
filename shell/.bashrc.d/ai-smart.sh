@@ -141,8 +141,13 @@ _check_space_before() {
     local needed="$1"
     local operation="$2"
     local available_mb=$(df -m / | tail -1 | awk '{print $4}')
-    local needed_mb=$(echo "$needed" | sed 's/G/*1024/g; s/M//g' | bc)
-    
+    local needed_mb
+    case "$needed" in
+        *G|*g) needed_mb=$(( ${needed%[Gg]} * 1024 )) ;;
+        *M|*m) needed_mb=${needed%[Mm]} ;;
+        *) needed_mb=$needed ;;
+    esac
+
     if [ "$available_mb" -lt "$needed_mb" ]; then
         echo "⚠️  WARNING: $operation needs ~$needed but only ${available_mb}MB available"
         read -p "Continue anyway? [y/N] " confirm
@@ -428,8 +433,15 @@ command_not_found_handle() {
 # AUTO-RUN CHECKS
 # ============================================================
 
-# Run autoclean reminder on login
-autoclean-remind
+# Run autoclean reminder only when explicitly enabled
+if [[ $- == *i* ]] && [ "${AUTOCLEAN_REMIND:-0}" = "1" ]; then
+    autoclean-remind
+fi
 
-# Export for use in PROMPT_COMMAND if desired
+# Export for use in PROMPT_COMMAND if desired.
+# To preserve an existing PROMPT_COMMAND, append smart-check and then run the
+# previous value, for example:
+#   PROMPT_COMMAND='smart-check "$BASH_COMMAND"; history -a'
+# If you already have a more complex PROMPT_COMMAND, wrap/append carefully so
+# $BASH_COMMAND is expanded at prompt time, not when you edit the file.
 export -f smart-check 2>/dev/null
