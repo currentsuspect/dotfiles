@@ -1,0 +1,35 @@
+name: shell-check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  shell-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Bash syntax check
+        run: |
+          bash -n shell/.bashrc
+          find shell/.bashrc.d -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
+          bash -n vps/bootstrap-apt.sh
+          bash -n vps/first-boot.sh
+          bash -n vps/install.sh
+          bash -n vps/verify.sh
+          bash -n vps/vps-doctor
+
+      - name: Shellcheck
+        run: |
+          shellcheck -s bash shell/.bashrc
+          find shell/.bashrc.d -type f -name '*.sh' -print0 | xargs -0 -r shellcheck -s bash
+          shellcheck vps/bootstrap-apt.sh vps/first-boot.sh vps/install.sh vps/verify.sh vps/vps-doctor

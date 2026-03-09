@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ok() { printf '✅ %s\n' "$1"; }
+warn() { printf '⚠️  %s\n' "$1"; }
+fail() { printf '❌ %s\n' "$1"; }
+have() { command -v "$1" >/dev/null 2>&1; }
+
+section() {
+  echo
+  echo "==> $1"
+}
+
+check_cmd() {
+  local cmd="$1"
+  local level="${2:-required}"
+  if have "$cmd"; then
+    ok "$cmd"
+  else
+    case "$level" in
+      required) fail "$cmd missing" ;;
+      optional) warn "$cmd missing" ;;
+    esac
+  fi
+}
+
+section 'Core commands'
+for cmd in bash git tmux curl jq rg fd fzf eza zoxide node npm pm2 openclaw starship; do
+  check_cmd "$cmd" required
+done
+if have batcat || have bat; then ok 'bat/batcat'; else fail 'bat or batcat missing'; fi
+for cmd in gh tailscale docker flutter sensors trash-put multitail clang-format cmake ctest; do
+  check_cmd "$cmd" optional
+done
+
+section 'Shell load'
+if bash -ic 'source ~/.bashrc >/dev/null 2>/tmp/vps-doctor-shell.err; type zi >/dev/null; type lt >/dev/null; type plog >/dev/null; type ltree >/dev/null; type glog >/dev/null; type mem >/dev/null; type mem-usage >/dev/null' ; then
+  ok '~/.bashrc loads and key helpers resolve'
+else
+  fail '~/.bashrc did not load cleanly'
+  cat /tmp/vps-doctor-shell.err || true
+fi
+
+section 'Disk / memory'
+df -h / | tail -1 | awk '{print "Disk: " $3 " / " $2 " (" $5 ")"}'
+free -h | awk '/Mem:/ {print "Memory: " $3 " / " $2}'
+
+section 'PM2'
+if have pm2; then
+  pm2 ping >/dev/null 2>&1 && ok 'PM2 daemon reachable' || warn 'PM2 installed but daemon not responding cleanly'
+  pm2 status 2>/dev/null | head -15 || true
+fi
+
+section 'OpenClaw'
+if have openclaw; then
+  openclaw status 2>/dev/null | sed -n '1,30p' || warn 'openclaw status returned non-zero'
+fi
+
+section 'Network helpers'
+if have tailscale; then
+  tailscale status --peers=false 2>/dev/null | sed -n '1,10p' || warn 'tailscale status unavailable'
+fi
+if have docker; then
+  docker --version || true
+  docker info >/dev/null 2>&1 && ok 'Docker daemon reachable' || warn 'docker installed but daemon not reachable'
+fi
+
+section 'Ports'
+if have ss; then
+  ss -tln | sed -n '1,20p'
+fi
+
+echo
+echo 'Doctor run complete.'
