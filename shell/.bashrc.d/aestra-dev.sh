@@ -63,34 +63,36 @@ ae-test-run() {
 # Aestra-specific dev layout
 dev-aestra() {
     local session="aestra"
-    
+    local editor_pane right_pane bottom_right_pane
+
     # Kill existing
     tmux kill-session -t "$session" 2>/dev/null
-    
+
     # Create session
     tmux new-session -d -s "$session" -c "$HOME/.openclaw/workspace/Aestra" -n editor
-    
+    editor_pane=$(tmux display-message -p -t "$session:editor" '#{pane_id}')
+
     # Layout: main | sidebar
-    tmux split-window -h -t "$session:editor" -p 35 -c "$HOME/.openclaw/workspace/Aestra"
-    tmux split-window -v -t "$session:editor.right" -p 50
-    
+    right_pane=$(tmux split-window -h -P -F '#{pane_id}' -t "$editor_pane" -p 35 -c "$HOME/.openclaw/workspace/Aestra")
+    bottom_right_pane=$(tmux split-window -v -P -F '#{pane_id}' -t "$right_pane" -p 50 -c "$HOME/.openclaw/workspace/Aestra")
+
     # Main pane: ready for vim/editor
-    tmux send-keys -t "$session:editor.left" 'clear && echo "Aestra Dev — $(git branch --show-current)" && echo "" && ls' C-m
-    
+    tmux send-keys -t "$editor_pane" 'clear && echo "Aestra Dev — $(git branch --show-current)" && echo "" && ls' C-m
+
     # Top-right: build log
-    tmux send-keys -t "$session:editor.right.top" 'watch -n 2 "ls -la build/*.exe build/aestra 2>/dev/null || echo \"Build: No binary yet\""' C-m
-    
+    tmux send-keys -t "$right_pane" 'watch -n 2 "ls -la build/*.exe build/aestra 2>/dev/null || echo \"Build: No binary yet\""' C-m
+
     # Bottom-right: git status
-    tmux send-keys -t "$session:editor.right.bottom" 'watch -n 5 "git status -sb && echo \"\" && git log --oneline -3"' C-m
-    
+    tmux send-keys -t "$bottom_right_pane" 'watch -n 5 "git status -sb && echo \"\" && git log --oneline -3"' C-m
+
     # Second window: build
     tmux new-window -t "$session" -n build -c "$HOME/.openclaw/workspace/Aestra"
     tmux send-keys -t "$session:build" 'ae-config && ae-build' C-m
-    
+
     # Third window: tests
     tmux new-window -t "$session" -n tests -c "$HOME/.openclaw/workspace/Aestra"
     tmux send-keys -t "$session:tests" 'echo "Run: ae-test or ae-test-verbose"' C-m
-    
+
     # Attach to editor
     tmux attach -t "$session:editor"
 }
@@ -196,6 +198,7 @@ ae-run() {
         ./build/aestra.exe 2>/dev/null
     else
         echo "Not built yet — run ae-build"
+        return 1
     fi
 }
 

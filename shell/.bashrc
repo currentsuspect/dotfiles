@@ -208,16 +208,31 @@ fgco() {
     echo 'fgco needs git + fzf'
     return 1
   fi
-  local branch
-  branch=$(git branch --all | grep -v HEAD | sed 's/^[* ]*//' | fzf) || return 1
-  git checkout "$branch"
+  local branch local_branch remote_ref
+  branch=$(git for-each-ref --format='%(refname:short)' refs/heads refs/remotes | grep -v '/HEAD$' | fzf) || return 1
+
+  if [[ "$branch" == remotes/* ]]; then
+    remote_ref="$branch"
+    local_branch="${branch#remotes/}"
+    local_branch="${local_branch#*/}"
+    if git show-ref --verify --quiet "refs/heads/$local_branch"; then
+      git checkout "$local_branch"
+    else
+      git checkout -b "$local_branch" "$remote_ref"
+    fi
+  else
+    git checkout "$branch"
+  fi
 }
 fgc() {
   if ! has git || ! has fzf; then
     echo 'fgc needs git + fzf'
     return 1
   fi
-  git status --short | fzf --multi --preview 'git diff --color=always {2}' | awk '{print $2}' | xargs git add
+  git status --porcelain=v2 -z \
+    | awk -v RS='\0' 'BEGIN { ORS="\0" } /^[12] / { print substr($0, 9) }' \
+    | fzf --read0 --print0 --multi \
+    | xargs -0 -r git add --
   git status
 }
 fh() {

@@ -36,12 +36,14 @@ done
 
 echo
 echo '==> Shell startup check'
-if bash -ic 'source ~/.bashrc >/dev/null 2>/tmp/vps-config-verify.err; type zi >/dev/null; type lt >/dev/null; type plog >/dev/null; type ltree >/dev/null; type glog >/dev/null; type mem >/dev/null; type mem-usage >/dev/null' ; then
+tmpfile=$(mktemp)
+trap 'rm -f "$tmpfile"' EXIT
+if bash -ic 'source ~/.bashrc >/dev/null 2>"$1" && type zi >/dev/null && type lt >/dev/null && type plog >/dev/null && type ltree >/dev/null && type glog >/dev/null && type mem >/dev/null && type mem-usage >/dev/null' _ "$tmpfile"; then
   ok '$HOME/.bashrc loads and key aliases/functions resolve'
 else
   fail '$HOME/.bashrc did not load cleanly'
   required_failures=$((required_failures + 1))
-  cat /tmp/vps-config-verify.err || true
+  cat "$tmpfile" || true
 fi
 
 echo
