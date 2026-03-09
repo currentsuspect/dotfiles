@@ -208,20 +208,29 @@ fgco() {
     echo 'fgco needs git + fzf'
     return 1
   fi
-  local branch local_branch remote_ref
-  branch=$(git for-each-ref --format='%(refname:short)' refs/heads refs/remotes | grep -v '/HEAD$' | fzf) || return 1
+  local branch local_branch remote_ref remote_name remote_branch_path existing_upstream
+  branch=$(git for-each-ref --format='%(refname)' refs/heads refs/remotes | grep -v '/HEAD$' | fzf) || return 1
 
-  if [[ "$branch" == remotes/* ]]; then
-    remote_ref="$branch"
-    local_branch="${branch#remotes/}"
-    local_branch="${local_branch#*/}"
+  if [[ "$branch" == refs/remotes/* ]]; then
+    remote_ref="${branch#refs/}"
+    remote_name="${remote_ref#remotes/}"
+    remote_name="${remote_name%%/*}"
+    remote_branch_path="${remote_ref#remotes/$remote_name/}"
+    local_branch="$remote_branch_path"
+
     if git show-ref --verify --quiet "refs/heads/$local_branch"; then
-      git checkout "$local_branch"
+      existing_upstream=$(git for-each-ref --format='%(upstream:short)' "refs/heads/$local_branch")
+      if [ "$existing_upstream" = "$remote_ref" ]; then
+        git checkout "$local_branch"
+      else
+        local_branch="${remote_name}/${remote_branch_path}"
+        git checkout -b "$local_branch" --track "$remote_ref"
+      fi
     else
-      git checkout -b "$local_branch" "$remote_ref"
+      git checkout -b "$local_branch" --track "$remote_ref"
     fi
   else
-    git checkout "$branch"
+    git checkout "${branch#refs/heads/}"
   fi
 }
 fgc() {
@@ -229,10 +238,33 @@ fgc() {
     echo 'fgc needs git + fzf'
     return 1
   fi
-  git status --porcelain=v2 -z \
-    | awk -v RS='\0' 'BEGIN { ORS="\0" } /^[12] / { print substr($0, 9) }' \
-    | fzf --read0 --print0 --multi \
-    | xargs -0 -r git add --
+  python3 - <<'PY' | fzf --read0 --print0 --multi | xargs -0 -r git add --
+import subprocess
+
+out = subprocess.check_output(['git', 'status', '--porcelain', '-z'])
+parts = out.split(b'\0')
+i = 0
+paths = []
+while i < len(parts):
+    rec = parts[i]
+    i += 1
+    if not rec:
+        continue
+    status = rec[:2].decode('utf-8', 'replace')
+    path = rec[3:].decode('utf-8', 'surrogateescape')
+    if status[0] in {'R', 'C'}:
+        if i >= len(parts) or not parts[i]:
+            continue
+        path = parts[i].decode('utf-8', 'surrogateescape')
+        i += 1
+    paths.append(path)
+
+seen = set()
+for path in paths:
+    if path not in seen:
+        seen.add(path)
+        print(path, end='\0')
+PY
   git status
 }
 fh() {
