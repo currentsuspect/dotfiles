@@ -1,0 +1,20 @@
+# Generated / local-only
+**/.DS_Store
+**/*.log
+**/*.tmp
+**/undo/
+**/.undo/
+**/cache/
+**/tmp/
+**/logs/
+**/node_modules/
+**/.env
+**/.env.*
+**/*token*
+**/*secret*
+**/*credential*
+**/*session*
+**/*cookie*
+
+# Local machine overrides for shared shell/VPS bundle
+shell/.bashrc.d/local.sh

@@ -1,0 +1,11 @@
+# ~/.bashrc.d/local.sh
+# Machine-specific overrides live here.
+# This file is intentionally not sourced from the bundle unless you copy it to ~/.bashrc.d/local.sh
+
+# Examples:
+# export PROJECTS_ROOT="$HOME/workspace"
+# alias wr='cd "$PROJECTS_ROOT/resonance"'
+# alias wa='cd "$PROJECTS_ROOT/Aestra"'
+# Copy this file to ~/.bashrc.d/local.sh and fill in your real values there.
+# alias phone='ssh your-user@your-host -p 2222'
+# export EDITOR='nvim'
