@@ -5,7 +5,9 @@ export ZSH=$HOME/.oh-my-zsh
 export ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # Path to powerlevel10k theme
-source ~/.config/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+if [[ -f ~/.config/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme ]]; then
+    source ~/.config/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+fi
 
 # Enable plugins
 plugins=(git sudo zsh-syntax-highlighting zsh-autosuggestions)

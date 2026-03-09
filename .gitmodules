@@ -1,7 +1,7 @@
-[submodule "spicetify/.config/spicetify/Themes"]
+[submodule "config/spicetify/Themes"]
 	path = config/spicetify/Themes
 	url = https://github.com/spicetify/spicetify-themes.git
-[submodule "zsh-theme-powerlevel10k/.config/zsh-theme-powerlevel10k"]
+[submodule "config/zsh-theme-powerlevel10k"]
 	path = config/zsh-theme-powerlevel10k
 	url = https://github.com/romkatv/powerlevel10k.git
 [submodule "zsh/.zinit/plugins/zdharma-continuum---fast-syntax-highlighting"]
