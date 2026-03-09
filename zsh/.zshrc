@@ -45,7 +45,7 @@ fi
 
 # Initialize zoxide
 if command -v zoxide >/dev/null 2>&1; then
-    eval "$(zoxide init --cmd fcd zsh)"
+    eval "$(zoxide init zsh)"
 fi
 
 # Source powerlevel10k configuration if it exists

@@ -33,7 +33,7 @@ If you skip this step, some linked config paths may exist without their contents
 - `shell/.bashrc.d/local.sh` is intentionally local-only and ignored.
 - `config/` is the normalized home for clean `.config/...` payloads; install/link tooling can map these into `~/.config/` directly.
 - `zsh/.zshrc` now tolerates a missing powerlevel10k checkout, but you should still initialize submodules for the full setup.
-- `zsh/` now assumes a simpler plugin story: current shell config + `.zsh/` plugin payloads, without the previously vendored `zsh/.zinit/` tree.
+- The old vendored `zsh/.zinit/` layer has been removed. Remaining plugin payloads under `zsh/.zsh/` are still tracked in the repo, but this PR does not fully rewire Oh My Zsh to load them automatically from that path.
 - Generated editor undo/history, backup files, and extracted app assets should not be committed.
 - `config/nvim/init.lua.bak` was intentionally removed; keep editor backups local, not tracked.
 - This repo is public — keep secrets, tokens, and machine-specific credentials out of it.
