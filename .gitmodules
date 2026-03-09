@@ -4,21 +4,6 @@
 [submodule "config/zsh-theme-powerlevel10k"]
 	path = config/zsh-theme-powerlevel10k
 	url = https://github.com/romkatv/powerlevel10k.git
-[submodule "zsh/.zinit/plugins/zdharma-continuum---fast-syntax-highlighting"]
-	path = zsh/.zinit/plugins/zdharma-continuum---fast-syntax-highlighting
-	url = https://github.com/zdharma-continuum/fast-syntax-highlighting.git
-[submodule "zsh/.zinit/plugins/zsh-users---zsh-autosuggestions"]
-	path = zsh/.zinit/plugins/zsh-users---zsh-autosuggestions
-	url = https://github.com/zsh-users/zsh-autosuggestions.git
-[submodule "zsh/.zinit/plugins/zsh-users---zsh-completions"]
-	path = zsh/.zinit/plugins/zsh-users---zsh-completions
-	url = https://github.com/zsh-users/zsh-completions.git
-[submodule "zsh/.zinit/plugins/zsh-users---zsh-history-substring-search"]
-	path = zsh/.zinit/plugins/zsh-users---zsh-history-substring-search
-	url = https://github.com/zsh-users/zsh-history-substring-search.git
-[submodule "zsh/.zinit/plugins/zsh-users---zsh-syntax-highlighting"]
-	path = zsh/.zinit/plugins/zsh-users---zsh-syntax-highlighting
-	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
 [submodule "zsh/.zsh/zsh-autosuggestions"]
 	path = zsh/.zsh/zsh-autosuggestions
 	url = https://github.com/zsh-users/zsh-autosuggestions.git
