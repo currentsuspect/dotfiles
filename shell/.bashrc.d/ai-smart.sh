@@ -185,41 +185,43 @@ autoclean-remind() {
 dev() {
     local project="${1:-resonance}"
     local session="dev-${project}"
-    
+    local left_pane right_top_pane right_bottom_pane
+
     # Kill existing session if any
     tmux kill-session -t "$session" 2>/dev/null
-    
+
     # Create new session
     tmux new-session -d -s "$session" -c "$HOME/.openclaw/workspace/$project" -n code
-    
+    left_pane=$(tmux display-message -p -t "$session:code" '#{pane_id}')
+
     # Split layout: left 70% code, right 30% logs/status
-    tmux split-window -h -t "$session:code" -p 30 -c "$HOME/.openclaw/workspace/$project"
-    
+    right_top_pane=$(tmux split-window -h -P -F '#{pane_id}' -t "$left_pane" -p 30 -c "$HOME/.openclaw/workspace/$project")
+
     # Right side: top logs, bottom status
-    tmux split-window -v -t "$session:code.right" -p 50
-    
+    right_bottom_pane=$(tmux split-window -v -P -F '#{pane_id}' -t "$right_top_pane" -p 50 -c "$HOME/.openclaw/workspace/$project")
+
     # Left: vim/neovim if available, else just ready for commands
-    tmux send-keys -t "$session:code.left" 'clear && ls -la' C-m
-    
+    tmux send-keys -t "$left_pane" 'clear && ls -la' C-m
+
     # Right-top: project-specific logs
     case "$project" in
         resonance)
-            tmux send-keys -t "$session:code.right.top" 'pm2 logs lifeos-api --lines 50' C-m
+            tmux send-keys -t "$right_top_pane" 'pm2 logs lifeos-api --lines 50' C-m
             ;;
         mspy-dashboard)
-            tmux send-keys -t "$session:code.right.top" 'pm2 logs mspy-dashboard --lines 50' C-m
+            tmux send-keys -t "$right_top_pane" 'pm2 logs mspy-dashboard --lines 50' C-m
             ;;
         blueprint)
-            tmux send-keys -t "$session:code.right.top" 'pm2 logs blueprint --lines 50' C-m
+            tmux send-keys -t "$right_top_pane" 'pm2 logs blueprint --lines 50' C-m
             ;;
         *)
-            tmux send-keys -t "$session:code.right.top" 'cd .. && ll' C-m
+            tmux send-keys -t "$right_top_pane" 'cd .. && ll' C-m
             ;;
     esac
-    
+
     # Right-bottom: status/dashboard
-    tmux send-keys -t "$session:code.right.bottom" 'watch -n 5 "pm2 status | head -15"' C-m
-    
+    tmux send-keys -t "$right_bottom_pane" 'watch -n 5 "pm2 status | head -15"' C-m
+
     # Attach
     tmux attach -t "$session"
 }
@@ -227,40 +229,46 @@ dev() {
 # Quick log workflow
 logs-flow() {
     local service="${1:-all}"
+    local left_top_pane right_pane left_bottom_pane
     tmux new-session -d -s logs -n main
-    tmux split-window -h -t logs:main
-    tmux split-window -v -t logs:main.left
-    
-    tmux send-keys -t logs:main.left-top "pm2 logs $service --lines 100" C-m
-    tmux send-keys -t logs:main.left-bottom "tail -f ~/.openclaw/logs/openclaw.log" C-m
-    tmux send-keys -t logs:main.right "watch -n 2 'pm2 status'" C-m
-    
+    left_top_pane=$(tmux display-message -p -t logs:main '#{pane_id}')
+    right_pane=$(tmux split-window -h -P -F '#{pane_id}' -t "$left_top_pane")
+    left_bottom_pane=$(tmux split-window -v -P -F '#{pane_id}' -t "$left_top_pane")
+
+    tmux send-keys -t "$left_top_pane" "pm2 logs $service --lines 100" C-m
+    tmux send-keys -t "$left_bottom_pane" "tail -f ~/.openclaw/logs/openclaw.log" C-m
+    tmux send-keys -t "$right_pane" "watch -n 2 'pm2 status'" C-m
+
     tmux attach -t logs
 }
 
 # Monitor workflow (status + resources)
 monitor() {
+    local left_pane right_pane
     tmux new-session -d -s monitor -n system
-    tmux split-window -h -t monitor:system
-    
-    tmux send-keys -t monitor:system.left 'htop' C-m
-    tmux send-keys -t monitor:system.right 'watch -n 1 "pm2 status && echo \"\" && df -h /"' C-m
-    
+    left_pane=$(tmux display-message -p -t monitor:system '#{pane_id}')
+    right_pane=$(tmux split-window -h -P -F '#{pane_id}' -t "$left_pane")
+
+    tmux send-keys -t "$left_pane" 'htop' C-m
+    tmux send-keys -t "$right_pane" 'watch -n 1 "pm2 status && echo \"\" && df -h /"' C-m
+
     tmux attach -t monitor
 }
 
 # Workspace overview
 overview() {
+    local top_left_pane right_top_pane left_bottom_pane right_bottom_pane
     tmux new-session -d -s overview -n ws
-    tmux split-window -h -t overview:ws
-    tmux split-window -v -t overview:ws.left
-    tmux split-window -v -t overview:ws.right
-    
-    tmux send-keys -t overview:ws.left-top 'watch -n 5 "gs-all | head -20"' C-m
-    tmux send-keys -t overview:ws.left-bottom 'storage-report' C-m
-    tmux send-keys -t overview:ws.right-top 'pm2 monit' C-m
-    tmux send-keys -t overview:ws.right-bottom 'watch -n 10 dash-mini' C-m
-    
+    top_left_pane=$(tmux display-message -p -t overview:ws '#{pane_id}')
+    right_top_pane=$(tmux split-window -h -P -F '#{pane_id}' -t "$top_left_pane")
+    left_bottom_pane=$(tmux split-window -v -P -F '#{pane_id}' -t "$top_left_pane")
+    right_bottom_pane=$(tmux split-window -v -P -F '#{pane_id}' -t "$right_top_pane")
+
+    tmux send-keys -t "$top_left_pane" 'watch -n 5 "gs-all | head -20"' C-m
+    tmux send-keys -t "$left_bottom_pane" 'storage-report' C-m
+    tmux send-keys -t "$right_top_pane" 'pm2 monit' C-m
+    tmux send-keys -t "$right_bottom_pane" 'watch -n 10 dash-mini' C-m
+
     tmux attach -t overview
 }
 

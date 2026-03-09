@@ -38,12 +38,14 @@ for cmd in bat batcat eza node npm pm2 openclaw starship gh tailscale docker flu
 done
 
 section 'Shell load'
-if bash -ic 'source ~/.bashrc >/dev/null 2>/tmp/vps-doctor-shell.err; type zi >/dev/null; type lt >/dev/null; type plog >/dev/null; type ltree >/dev/null; type glog >/dev/null; type mem >/dev/null; type mem-usage >/dev/null' ; then
+tmpfile=$(mktemp)
+trap 'rm -f "$tmpfile"' EXIT
+if bash -ic 'source ~/.bashrc >/dev/null 2>"$1" && type zi >/dev/null && type lt >/dev/null && type plog >/dev/null && type ltree >/dev/null && type glog >/dev/null && type mem >/dev/null && type mem-usage >/dev/null' _ "$tmpfile"; then
   ok '$HOME/.bashrc loads and key helpers resolve'
 else
   fail '$HOME/.bashrc did not load cleanly'
   required_failures=$((required_failures + 1))
-  cat /tmp/vps-doctor-shell.err || true
+  cat "$tmpfile" || true
 fi
 
 section 'Disk / memory'
